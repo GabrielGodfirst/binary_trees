@@ -2,128 +2,123 @@
 #include "binary_trees.h"
 
 /**
- * new_link - Creates a new linked list node with the given binary tree node
- * @node: Pointer to the binary tree node
- * Return: Pointer to the newly created linked list node, or NULL on failure
+ * new_node - Creates a new node in a linked list
+ * @node: Pointer to the node to be created
+ * Return: The created node
  */
 
-link_t *new_link(binary_tree_t *node)
+link_t *new_node(binary_tree_t *node)
 {
-	link_t *new_node = malloc(sizeof(link_t));
+	link_t *new;
 
-	if (new_node == NULL)
+	new =  malloc(sizeof(link_t));
+	if (new == NULL)
+	{
 		return (NULL);
+	}
+	new->node = node;
+	new->next = NULL;
 
-	new_node->node = node;
-	new_node->next = NULL;
-	return (new_node);
+	return (new);
 }
 
 /**
- * free_links - Frees the memory allocated for a linked list
+ * free_q - Frees the nodes in the linked list
  * @head: Pointer to the head of the linked list
  */
 
-void free_links(link_t *head)
+void free_q(link_t *head)
 {
-	while (head != NULL)
-	{
-		link_t *temp = head;
+	link_t *temp_node;
 
-		head = head->next;
-		free(temp);
+	while (head)
+	{
+		temp_node = head->next;
+		free(head);
+		head = temp_node;
 	}
 }
 
 /**
- * push_link - Pushes a new node into the linked list
- * @node: Pointer to the binary tree node to be pushed
- * @head: Pointer to the head of the linked list
- * @tail: Pointer to the tail of the linked list
- * Return: 1 on success, 0 on failure
+ * _push - Pushes a node into the stack
+ * @node: Pointer to the node of the tree
+ * @head: Pointer to the head node of the stack
+ * @tail: Pointer to the tail node of the stack
  */
 
-int push_link(binary_tree_t *node, link_t **head, link_t **tail)
+void _push(binary_tree_t *node, link_t *head, link_t **tail)
 {
-	link_t *new_node = new_link(node);
+	link_t *new;
 
-	if (new_node == NULL)
+	new = new_node(node);
+	if (new == NULL)
 	{
-		free_links(*head);
-		return (0);
+		free_q(head);
+		exit(1);
 	}
-	if (*head == NULL)
-		*head = new_node;
-	else
-		(*tail)->next = new_node;
-	*tail = new_node;
-	return (1);
+	(*tail)->next = new;
+	*tail = new;
 }
 
 /**
- * pop_link - Pops a node from the linked list
- * @head: Pointer to the head of the linked list
+ * _pop - Pops a node from the stack
+ * @head: Pointer to the head node of the stack
  */
 
-void pop_link(link_t **head)
+void _pop(link_t **head)
 {
-	if (*head == NULL)
-		return;
-	link_t *temp = *head;
-	*head = (*head)->next;
-	free(temp);
+	link_t *temp_node;
+
+	temp_node = (*head)->next;
+	free(*head);
+	*head = temp_node;
 }
 
 /**
  * binary_tree_is_complete - Checks if a binary tree is complete
  * @tree: Pointer to the root node of the tree
- * Return: 1 if the tree is complete, 0 otherwise
+ * Return: 1 if it is complete, 0 otherwise
  */
 
 int binary_tree_is_complete(const binary_tree_t *tree)
 {
-	if (tree == NULL)
-		return (0);
-
-	link_t *head = new_link((binary_tree_t *)tree);
-
-	if (head == NULL)
-		return (0);
-
-	link_t *tail = head;
+	link_t *head, *tail;
 	int flag = 0;
 
+	if (tree == NULL)
+	{
+		return (0);
+	}
+	head = tail = new_node((binary_tree_t *)tree);
+	if (head == NULL)
+	{
+		exit(1);
+	}
 	while (head != NULL)
 	{
 		if (head->node->left != NULL)
 		{
 			if (flag == 1)
 			{
-				free_links(head);
+				free_q(head);
 				return (0);
 			}
-			if (!push_link(head->node->left, &head, &tail))
-				return (0);
+			_push(head->node->left, head, &tail);
 		}
 		else
 			flag = 1;
-
 		if (head->node->right != NULL)
 		{
 			if (flag == 1)
 			{
-				free_links(head);
+				free_q(head);
 				return (0);
 			}
-			if (!push_link(head->node->right, &head, &tail))
-				return (0);
+			_push(head->node->right, head, &tail);
 		}
 		else
 			flag = 1;
-
-		pop_link(&head);
+		_pop(&head);
 	}
-
-	free_links(head);
 	return (1);
 }
